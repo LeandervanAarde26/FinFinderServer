@@ -1,7 +1,7 @@
 import { prop, getModelForClass } from '@typegoose/typegoose';
 import { Schema } from 'mongoose';
 
-class Fish {
+export class Fish {
   @prop({ required: true,  type: () => [Schema.Types.ObjectId] })
   public _id!: Schema.Types.ObjectId;
 
