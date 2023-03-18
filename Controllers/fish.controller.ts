@@ -28,10 +28,10 @@ async function getById(req: Request, res: Response) {
             },
 
         ]
-        )
-        return res.status(200).json(individualFish ?? { error: `Fish with ID ${id} does not exist or cannot be found` })
+        );
+        return res.status(200).json(individualFish ?? { error: `Fish with ID ${id} does not exist or cannot be found` });
     } catch (error) {
-        return res.status(500).json({ error: 'There was a server error' })
+        return res.status(500).json({ error: 'There was a server error' });
     }
 };
 
