@@ -1,7 +1,16 @@
 import { prop, getModelForClass } from '@typegoose/typegoose';
 import { Schema } from 'mongoose';
 
-export class Fish {
+// export class FishRef {
+//   @prop({ required: true, ref: 'Fish' })
+//   public _id!: Schema.Types.ObjectId;
+
+//   @prop({ required: true, default: 0 })
+//   public quantity!: number;
+// }
+
+ class Fish {
+
   @prop({ required: true })
   public name!: string;
 
