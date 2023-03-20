@@ -11,7 +11,7 @@ import { Schema } from 'mongoose';
 
  class Fish {
 
-  @prop({ required: true })
+  @prop({ required: true, ref: 'name' })
   public name!: string;
 
   @prop({ required: true })

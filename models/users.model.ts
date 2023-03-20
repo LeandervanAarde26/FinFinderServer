@@ -23,8 +23,8 @@ class User {
     @prop({ _id: false, type: () => [SecurityQuestion] })
     public securityQuestions!: SecurityQuestion[];
 
-    @prop({ _id: false, type: () => [FishRef] })
-    public fish!: FishRef[];
+    // @prop({ _id: false, type: () => [FishRef] })
+    // public fish!: FishRef[];
 
     @prop({ _id: false, type: () => [Schema.Types.ObjectId] })
     public locations!: [];
