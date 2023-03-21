@@ -18,8 +18,8 @@ async function getUsers(req: Request, res: Response) {
 
 async function addUser(req: Request, res: Response) {
     try {
-        const { Username, Email, Questions} = req.body;
-     
+        const { Username, Email, Questions } = req.body;
+
         const existingUser = await Users.findOne({ email: Email });
         const allFish = await FishModel.find();
         const userFish = await Promise.all(allFish.map(async (i) => {
@@ -51,13 +51,13 @@ async function addUser(req: Request, res: Response) {
             const savedUser = await newUser.save()
             const savedMaterial = await userMaterials.save();
             // const user
-            return res.status(200).json({ user: savedUser, materials: savedMaterial })
+            return res.status(200).json({ user: savedUser, materials: savedMaterial, status: true })
         } else {
-            return res.status(409).json({ error: 'User already exists on database' })
+            return res.status(409).json({ error: 'User already exists on database', status: true })
         }
     } catch (error) {
         console.log(error)
-        return res.status(500).json({ error: 'There was a server error' })
+        return res.status(500).json({ error: 'There was a server error', status: true })
     }
 }
 
@@ -75,7 +75,6 @@ async function getUserMaterials(req: Request, res: Response) {
                 path: 'id name imagePath',
                 model: FishModel,
                 select: 'name imagePath'
-
             }
         });
         const returnData = userMaterials.map((i) => {
@@ -94,4 +93,25 @@ async function getUserMaterials(req: Request, res: Response) {
     }
 }
 
-export default { getUsers, addUser, getUserMaterials }
+async function getQuestions(req: Request, res: Response) {
+    try {
+        const Email = req.params.email;
+        const random = (arr: any) => {
+            return arr[Math.floor((Math.random() * arr.length))]
+        }
+        console.log(Email)
+        const userQuery = await Users.find({ email: Email }).select(['securityQuestions']);
+
+        if (!userQuery) {
+            return res.status(404).json({ msg: 'User does not exist on database', status: false });
+        }
+
+        const question = random(userQuery[0].securityQuestions)
+        return res.status(200).json({question: question, status: true})
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ error: 'There was a server error' })
+    }
+}
+
+export default { getUsers, addUser, getUserMaterials, getQuestions }
