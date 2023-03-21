@@ -26,11 +26,11 @@ async function getById(req: Request, res: Response) {
                 populate: { path: 'name', select: 'name' },
                 select: '-notCompatible',
             },
-
         ]
         );
         return res.status(200).json(individualFish ?? { error: `Fish with ID ${id} does not exist or cannot be found` });
     } catch (error) {
+        console.log(error)
         return res.status(500).json({ error: 'There was a server error' });
     }
 };

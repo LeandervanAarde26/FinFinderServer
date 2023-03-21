@@ -18,33 +18,32 @@ async function getUsers(req: Request, res: Response) {
 
 async function addUser(req: Request, res: Response) {
     try {
-        const { name, email, questions, answers } = req.body;
-        const existingUser = await Users.findOne({ email: email });
+        const { Username, Email, Questions} = req.body;
+     
+        const existingUser = await Users.findOne({ email: Email });
         const allFish = await FishModel.find();
         const userFish = await Promise.all(allFish.map(async (i) => {
             return await Fishie.create({ id: i._id, quantity: 0 });
         }));
         if (!existingUser) {
             const newUser = new Users({
-                name: name,
-                email: email,
+                name: Username,
+                email: Email,
                 securityQuestions: [
                     {
-                        question: questions[0],
-                        answer: answers[0]
+                        question: Questions[0].question,
+                        answer: Questions[0].answer
                     },
                     {
-                        question: questions[1],
-                        answer: answers[1]
+                        question: Questions[1].question,
+                        answer: Questions[1].answer
                     },
                     {
-                        question: questions[2],
-                        answer: answers[2]
+                        question: Questions[2].question,
+                        answer: Questions[2].answer
                     }
                 ],
-                // fish: userFish
             });
-
             const userMaterials = new userMats({
                 id: newUser._id,
                 fish: userFish
@@ -59,21 +58,17 @@ async function addUser(req: Request, res: Response) {
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: 'There was a server error' })
-
     }
 }
 
 
 async function getUserMaterials(req: Request, res: Response) {
-
     try {
         const userId = req.params.id
         const user = await Users.findById(userId);
-
         if (!user) {
             return res.status(400).json({ msg: "Bad request" })
         }
-
         const userMaterials = await userMats.find({ id: userId }).populate({
             path: 'fish',
             populate: {
@@ -83,28 +78,20 @@ async function getUserMaterials(req: Request, res: Response) {
 
             }
         });
-
-        const returnData = userMaterials.map((i) => { return {
-            _id: i._id ,
-            fish: i.fish.map((j: any) => {return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity}}),
-        }})
-
-        console.log(returnData)
-
-        console.log(userMaterials)
- 
-
+        const returnData = userMaterials.map((i) => {
+            return {
+                _id: i._id,
+                fish: i.fish.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
+            }
+        })
         if (!userMaterials) {
             return res.status(400).json({ msg: "Bad request" })
         }
-
         return res.status(200).json(returnData[0])
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: 'There was a server error' })
     }
-
-
 }
 
 export default { getUsers, addUser, getUserMaterials }
