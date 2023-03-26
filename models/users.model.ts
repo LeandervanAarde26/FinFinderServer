@@ -4,13 +4,14 @@ import { Schema } from "mongoose";
 import { FishModel } from "./fish.model";
 
 
- export class FishRef {
+ export class modelRef {
     @prop({ required: true,  _id: false })
     public id!: Schema.Types.ObjectId;
   
     @prop({ required: true, default: 0 })
     public quantity!: number;
   }
+
   
 
 class User {
@@ -39,6 +40,6 @@ class SecurityQuestion {
 }
 
 export const Users = getModelForClass(User)
-export const Fishie = getModelForClass(FishRef)
+export const Reference = getModelForClass(modelRef)
 
 

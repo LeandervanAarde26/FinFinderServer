@@ -2,8 +2,9 @@ import { Users } from "../models/users.model";
 import express, { Express, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { FishModel } from "../models/fish.model";
-import { Fishie } from "../models/users.model";
-import { userMats } from "../models/userMaterial";
+import { Reference } from "../models/users.model";
+import { MaterialReference, userMats } from "../models/userMaterial";
+import { DecorationModel } from "../models/decorations.model";
 
 
 async function getUsers(req: Request, res: Response) {
@@ -22,8 +23,13 @@ async function addUser(req: Request, res: Response) {
 
         const existingUser = await Users.findOne({ email: Email });
         const allFish = await FishModel.find();
+        const decorations = await DecorationModel.find();
+        const userDecorations = await Promise.all(decorations.map(async (i) => {
+            return await Reference.create({ id: i._id, quantity: 0 });
+        }));
+
         const userFish = await Promise.all(allFish.map(async (i) => {
-            return await Fishie.create({ id: i._id, quantity: 0 });
+            return await Reference.create({ id: i._id, quantity: 0 });
         }));
         if (!existingUser) {
             const newUser = new Users({
@@ -46,8 +52,10 @@ async function addUser(req: Request, res: Response) {
             });
             const userMaterials = new userMats({
                 id: newUser._id,
-                fish: userFish
-            })
+                fish: userFish,
+                decorations: userDecorations
+            });
+
             const savedUser = await newUser.save()
             const savedMaterial = await userMaterials.save();
             // const user
@@ -75,12 +83,23 @@ async function getUserMaterials(req: Request, res: Response) {
                 path: 'id name imagePath',
                 model: FishModel,
                 select: 'name imagePath'
-            }
+            },
+
+
+        }).populate({
+            path: 'decorations',
+            populate: {
+                path: 'id name imagePath',
+                model: DecorationModel,
+                select: 'name imagePath'
+            },
         });
+
         const returnData = userMaterials.map((i) => {
             return {
                 _id: i._id,
                 fish: i.fish.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
+                decorations: i.decorations.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
             }
         })
         if (!userMaterials) {

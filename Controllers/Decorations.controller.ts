@@ -43,4 +43,20 @@ async function getDecorations(req: Request, res: Response){
     }
 }
 
-export default {addDecoration, getDecorations};
+async function getById(req: Request, res: Response){
+    const id = req.params.id;
+
+    try {
+        const individualDecoration = await DecorationModel.findById(id);
+        if(!individualDecoration){
+            return res.status(404).json({error: 'Decoration was not found, please try again'});
+        }
+        return res.status(200).json(individualDecoration ?? {error: `Decoration with ${id} was not found.`})
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error: 'There was a server error'})
+    }
+}
+
+export default {addDecoration, getDecorations, getById};
