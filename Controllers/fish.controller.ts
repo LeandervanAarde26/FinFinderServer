@@ -39,34 +39,58 @@ async function getById(req: Request, res: Response) {
 async function getCompat(req: Request, res: Response) {
     try {
         let id = req.params.id
-
         let compat: string[] = [
-
-            "Angel Fish",
-            "Barbs",
-            "Silver Dollar",
             "Cory Cats",
             "Danios",
-            "Ghost Knife",
             "Gourami",
+            "Guppy",
             "Loaches",
             "Molly",
             "Plecostomus",
             "Rainbow Fish",
             "Rasbora",
             "Red Tail Shark",
-            "Neon Tetra"]
-    
-        let noncompat = [
+            "Neon Tetra",
+            "Ghost Knife",
+            "Silver Dollar",
+            "Angel Fish",
+            "Barbs",
+        ]
+
+        let noncompat: string[] = [
             "Beta Fish",
             "Cichlid",
             "Discus",
             "Gold Fish",
-            "Guppy",
             "Koi",
             "Oscars",
-            "Shrimp"
-        ];
+            "Shrimp",
+        ]
+    
+        // let noncompat = [
+        //     "Beta Fish",
+        //     "Cory Cats",
+        //     "Danios",
+        //     "Discus",
+        //     "Gold Fish",
+        //     "Gourami",
+        //     "Guppy",
+        //     "Koi",
+        //     "Loaches",
+        //     "Molly",
+        //     "Oscars",
+        //     "Plecostomus",
+        //     "Rainbow Fish",
+        //     "Rasbora",
+        //     "Red Tail Shark",
+        //     "Neon Tetra",
+        //     "Shrimp",
+        //     "Ghost Knife",
+        //     "Silver Dollar",
+        //     "Angel Fish",
+        //     "Barbs",
+        //     "Cichlid"
+        // ];
 
     
         // let queryFish = FishModel.findById(id);

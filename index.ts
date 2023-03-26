@@ -7,6 +7,7 @@ import { dbConnection } from "./db";
 // import { fish } from "./models/fish.model";
 const fishRouter = require('./Routes/fish.route')
 const userRouter = require('./Routes/users.route')
+const decorationRouter = require('./Routes/decorations.route')
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use(cors()); // Avoid cors error
 app.use(express.json()); //Get params from the body
 app.use(fishRouter)
 app.use(userRouter)
+app.use(decorationRouter)
 
 
 mongoose.set('strictQuery', false);
