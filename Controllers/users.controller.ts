@@ -99,19 +99,17 @@ async function getQuestions(req: Request, res: Response) {
         const random = (arr: any) => {
             return arr[Math.floor((Math.random() * arr.length))]
         }
-        console.log(Email)
         const userQuery = await Users.find({ email: Email }).select(['securityQuestions']);
 
         if (!userQuery) {
-            return res.status(404).json({ msg: 'User does not exist on database', status: false });
+            return res.status(409).json({ msg: 'User does not exist on database', status: false });
         }
-
         const question = random(userQuery[0].securityQuestions)
-        return res.status(200).json({question: question, status: true})
+        console.log(userQuery)
+        return res.status(200).json({user: userQuery[0]._id, question: question, status: true})
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: 'There was a server error' })
     }
 }
-
 export default { getUsers, addUser, getUserMaterials, getQuestions }

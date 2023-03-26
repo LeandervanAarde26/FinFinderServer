@@ -1,5 +1,5 @@
 import { FishModel } from '../models/fish.model';
-import express, { Express, Request, Response } from 'express';
+import express, { Express, query, Request, Response } from 'express';
 import mongoose from 'mongoose';
 
 
@@ -36,10 +36,63 @@ async function getById(req: Request, res: Response) {
 };
 
 
+async function getCompat(req: Request, res: Response) {
+    try {
+        let id = req.params.id
+
+        let compat: string[] = [
+
+            "Angel Fish",
+            "Barbs",
+            "Silver Dollar",
+            "Cory Cats",
+            "Danios",
+            "Ghost Knife",
+            "Gourami",
+            "Loaches",
+            "Molly",
+            "Plecostomus",
+            "Rainbow Fish",
+            "Rasbora",
+            "Red Tail Shark",
+            "Neon Tetra"]
+    
+        let noncompat = [
+            "Beta Fish",
+            "Cichlid",
+            "Discus",
+            "Gold Fish",
+            "Guppy",
+            "Koi",
+            "Oscars",
+            "Shrimp"
+        ];
+
+    
+        // let queryFish = FishModel.findById(id);
+        const Can = await FishModel.find({name: {$in: compat}}).select('_id');
+        const Cant = await FishModel.find({name: {$in: noncompat}}).select('_id');
+        const Fish = await FishModel.updateOne({_id: id}, {$push: {compatibility: Can, notCompatible: Cant}});
+        
+        
+        // queryFish.update()
+
+        // if(!queryFish){
+        //     return res.status(404).json({msg: 'fish not found'})
+        // }
+    
+        return res.status(200).json({can: Can , Cant: Cant, fish: Fish})
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({error: error})
+    }
+}
 
 
 
 
 
 
-export default { getAllFish, getById }
+
+
+export default { getAllFish, getById , getCompat}
