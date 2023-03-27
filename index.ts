@@ -5,9 +5,10 @@ import mongoose from 'mongoose';
 import { dbConnection } from "./db";
 // End Point routes to be here
 // import { fish } from "./models/fish.model";
-const fishRouter = require('./Routes/fish.route')
-const userRouter = require('./Routes/users.route')
-const decorationRouter = require('./Routes/decorations.route')
+const fishRouter = require('./Routes/fish.route');
+const userRouter = require('./Routes/users.route');
+const decorationRouter = require('./Routes/decorations.route');
+const utilityRouter = require('./Routes/utilities.route');
 
 dotenv.config();
 
@@ -18,9 +19,10 @@ const port = process.env.PORT || 3000;
 //MiddleWare
 app.use(cors()); // Avoid cors error
 app.use(express.json()); //Get params from the body
-app.use(fishRouter)
-app.use(userRouter)
-app.use(decorationRouter)
+app.use(fishRouter);
+app.use(userRouter);
+app.use(decorationRouter);
+app.use(utilityRouter);
 
 
 mongoose.set('strictQuery', false);
@@ -34,6 +36,6 @@ app.get('/', (req, res) => {
 
 app.listen(port, () => {
     console.log(`FinFinder server is now running on port ${port}`)
-})
+});
 
 

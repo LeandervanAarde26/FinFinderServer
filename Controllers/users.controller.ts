@@ -5,6 +5,7 @@ import { FishModel } from "../models/fish.model";
 import { Reference } from "../models/users.model";
 import { MaterialReference, userMats } from "../models/userMaterial";
 import { DecorationModel } from "../models/decorations.model";
+import { UtilityModel } from "../models/utilities.model";
 
 
 async function getUsers(req: Request, res: Response) {
@@ -24,6 +25,12 @@ async function addUser(req: Request, res: Response) {
         const existingUser = await Users.findOne({ email: Email });
         const allFish = await FishModel.find();
         const decorations = await DecorationModel.find();
+        const utils = await UtilityModel.find()
+
+        const userUtilities = await Promise.all(utils.map(async (i) => {
+            return await Reference.create({ id: i._id, quantity: 0 });
+        })); 
+
         const userDecorations = await Promise.all(decorations.map(async (i) => {
             return await Reference.create({ id: i._id, quantity: 0 });
         }));
@@ -53,7 +60,8 @@ async function addUser(req: Request, res: Response) {
             const userMaterials = new userMats({
                 id: newUser._id,
                 fish: userFish,
-                decorations: userDecorations
+                decorations: userDecorations,
+                utilities: userUtilities
             });
 
             const savedUser = await newUser.save()
@@ -74,32 +82,42 @@ async function getUserMaterials(req: Request, res: Response) {
     try {
         const userId = req.params.id
         const user = await Users.findById(userId);
+        const populateAreas = {
+            path: 'id name imagePath',
+            select: 'name imagePath'
+        }
         if (!user) {
             return res.status(400).json({ msg: "Bad request" })
         }
         const userMaterials = await userMats.find({ id: userId }).populate({
             path: 'fish',
             populate: {
-                path: 'id name imagePath',
+                ...populateAreas,
                 model: FishModel,
-                select: 'name imagePath'
             },
-
-
         }).populate({
             path: 'decorations',
             populate: {
-                path: 'id name imagePath',
+                ...populateAreas,
                 model: DecorationModel,
-                select: 'name imagePath'
+               
             },
-        });
+        }).populate({
+            path: 'utilities',
+            populate: {
+                ...populateAreas,
+                model: UtilityModel, 
+            },
+        }) ;
+
+
 
         const returnData = userMaterials.map((i) => {
             return {
                 _id: i._id,
                 fish: i.fish.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
                 decorations: i.decorations.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
+                utilities: i.utilities.map((j: any) => { return { _id: j._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } })
             }
         })
         if (!userMaterials) {

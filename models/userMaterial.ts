@@ -23,6 +23,9 @@ class UserMaterial {
     @prop({ _id: false, type: () => [MaterialReference] })
     public decorations!: MaterialReference[];
 
+    @prop({ _id: false, type: () => [MaterialReference] })
+    public utilities!: MaterialReference[];
+
     // @prop({ _id: false, type: () => [MaterialReference] })
     // public utilities!: MaterialReference[];
 }
