@@ -1,11 +1,13 @@
 import { Users } from "../models/users.model";
 import express, { Express, Request, Response } from 'express';
-import mongoose from 'mongoose';
+import mongoose, { ObjectId } from 'mongoose';
 import { FishModel } from "../models/fish.model";
 import { Reference } from "../models/users.model";
 import { MaterialReference, userMats } from "../models/userMaterial";
 import { DecorationModel } from "../models/decorations.model";
 import { UtilityModel } from "../models/utilities.model";
+import { KeyObject } from "tls";
+import { KeyObjectType } from "crypto";
 
 
 async function getUsers(req: Request, res: Response) {
@@ -29,7 +31,7 @@ async function addUser(req: Request, res: Response) {
 
         const userUtilities = await Promise.all(utils.map(async (i) => {
             return await Reference.create({ id: i._id, quantity: 0 });
-        })); 
+        }));
 
         const userDecorations = await Promise.all(decorations.map(async (i) => {
             return await Reference.create({ id: i._id, quantity: 0 });
@@ -100,15 +102,15 @@ async function getUserMaterials(req: Request, res: Response) {
             populate: {
                 ...populateAreas,
                 model: DecorationModel,
-               
+
             },
         }).populate({
             path: 'utilities',
             populate: {
                 ...populateAreas,
-                model: UtilityModel, 
+                model: UtilityModel,
             },
-        }) ;
+        });
 
 
 
@@ -143,10 +145,33 @@ async function getQuestions(req: Request, res: Response) {
         }
         const question = random(userQuery[0].securityQuestions)
         console.log(userQuery)
-        return res.status(200).json({user: userQuery[0]._id, question: question, status: true})
+        return res.status(200).json({ user: userQuery[0]._id, question: question, status: true })
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: 'There was a server error' })
     }
 }
-export default { getUsers, addUser, getUserMaterials, getQuestions }
+
+async function udpateQuantity(req: Request, res: Response) {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.params.id);
+        const itemId = new mongoose.Types.ObjectId(req.body.itemId);
+        const category = req.body.category;
+        const amount: number = req.body.amount; 
+
+        const userMaterial = await userMats.updateOne({
+            id: userId,
+            [`${category}.id`]: itemId
+        },{
+            $set: {[`${category}.$.quantity`]: amount}
+        });
+        if (!userMaterial) {
+            return res.status(404).send({ msg: `Usermaterials with userId ${userId} was not found` });
+        }
+        return res.status(200).send(userMaterial)
+    } catch (error) {
+        console.log(error)
+        return res.status(500).send(error)
+    }
+}
+export default { getUsers, addUser, getUserMaterials, getQuestions, udpateQuantity }

@@ -7,6 +7,6 @@ router.get('/user/:email', controller.getQuestions);
 router.get('/user/:id', controller.getUsers);
 router.post('/user', controller.addUser);
 router.get('/user/materials/:id', controller.getUserMaterials);
-
+router.patch('/user/fish/:id', controller.udpateQuantity);
 
 module.exports = router;
