@@ -86,7 +86,7 @@ async function getUserMaterials(req: Request, res: Response) {
         const user = await Users.findById(userId);
         const populateAreas = {
             path: 'id name imagePath',
-            select: 'name imagePath'
+            select: 'id name imagePath'
         }
         if (!user) {
             return res.status(400).json({ msg: "Bad request" })
@@ -112,14 +112,14 @@ async function getUserMaterials(req: Request, res: Response) {
             },
         });
 
-
+        console.log(userMaterials)
 
         const returnData = userMaterials.map((i) => {
             return {
                 _id: i._id,
                 fish: i.fish.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
                 decorations: i.decorations.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
-                utilities: i.utilities.map((j: any) => { return { _id: j._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } })
+                utilities: i.utilities.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } })
             }
         })
         if (!userMaterials) {
@@ -132,6 +132,86 @@ async function getUserMaterials(req: Request, res: Response) {
     }
 }
 
+async function getUserMaterial(req: Request, res: Response) {
+    try {
+        const item = req.query.itemId;
+        const userId = req.params.id;
+        const category= req.query.category;
+
+        let userMaterial: any;
+        let compatibleFish: any;
+
+
+        switch(category){
+            case "fish":
+                const populateAreas = {
+                    path: 'id name imagePath',  select: 'id name imagePath'
+                }
+                 userMaterial = await userMats.aggregate([
+                    {$match: {id: new mongoose.Types.ObjectId(userId) }},
+                    {$project: { _id: 0 , [`${category}`]: 1}},
+                    {$unwind: `$${category}`},
+                    {$lookup: {from: `${category}`, localField: `${category}.id`, foreignField: '_id', as: 'item'}},
+                    {$unwind: '$item'},
+                    {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
+                    {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1, "item.diet": 1, "item.space": 1, "item.imagePath": 1, "item.temprature": 1, "item.name": 1}}
+              ]);
+
+              compatibleFish = await FishModel.findById(item).populate([
+                {
+                    path: 'compatibility',
+                    populate: { path: 'name', select: 'name' },
+                    select: '-compatibility',
+                },
+                {
+                    path: 'notCompatible',
+                    populate: { path: 'name', select: 'name' },
+                    select: '-notCompatible',
+                },
+            ]
+            );
+              break;
+
+            case "decorations":
+                 userMaterial = await userMats.aggregate([
+                    {$match: {id: new mongoose.Types.ObjectId(userId) }},
+                    {$project: { _id: 0 , [`${category}`]: 1}},
+                    {$unwind: `$${category}`},
+                    {$lookup: {from: `${category}`, localField: `${category}.id`, foreignField: '_id', as: 'item'}},
+                    {$unwind: '$item'},
+                    {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
+                    // {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1}}
+              ]);
+              
+            case "utilities":
+                 userMaterial = await userMats.aggregate([
+                    {$match: {id: new mongoose.Types.ObjectId(userId) }},
+                    {$project: { _id: 0 , [`${category}`]: 1}},
+                    {$unwind: `$${category}`},
+                    {$lookup: {from: `${category}`, localField: `${category}.id`, foreignField: '_id', as: 'item'}},
+                    {$unwind: '$item'},
+                    {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
+                    // {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1}}
+              ]);
+
+        }
+
+
+
+        if (!userMaterial) {
+            return res.status(404).json({ msg: `user with ${userId} does not exist` })
+        }
+       
+        if(category == 'fish'){
+            return res.status(200).json({mat: userMaterial[0], compat: compatibleFish.compatibility, nonCompat: compatibleFish.notCompatible })
+        }
+
+        return res.status(200).json({mat: userMaterial[0]})
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ error: error, msg: 'Internal server error' })
+    }
+}
 async function getQuestions(req: Request, res: Response) {
     try {
         const Email = req.params.email;
@@ -157,14 +237,16 @@ async function udpateQuantity(req: Request, res: Response) {
         const userId = new mongoose.Types.ObjectId(req.params.id);
         const itemId = new mongoose.Types.ObjectId(req.body.itemId);
         const category = req.body.category;
-        const amount: number = req.body.amount; 
+        const amount: number = req.body.amount < 0 ? 0 : req.body.amount;
 
         const userMaterial = await userMats.updateOne({
             id: userId,
             [`${category}.id`]: itemId
-        },{
-            $set: {[`${category}.$.quantity`]: amount}
+        }, {
+            $set: { [`${category}.$.quantity`]: amount }
         });
+
+        console.log(itemId)
         if (!userMaterial) {
             return res.status(404).send({ msg: `Usermaterials with userId ${userId} was not found` });
         }
@@ -174,4 +256,5 @@ async function udpateQuantity(req: Request, res: Response) {
         return res.status(500).send(error)
     }
 }
-export default { getUsers, addUser, getUserMaterials, getQuestions, udpateQuantity }
+
+export default { getUsers, addUser, getUserMaterials, getUserMaterial, getQuestions, udpateQuantity, }

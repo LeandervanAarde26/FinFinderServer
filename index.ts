@@ -9,6 +9,7 @@ const fishRouter = require('./Routes/fish.route');
 const userRouter = require('./Routes/users.route');
 const decorationRouter = require('./Routes/decorations.route');
 const utilityRouter = require('./Routes/utilities.route');
+const buildRouter = require('./Routes/builds.route')
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use(fishRouter);
 app.use(userRouter);
 app.use(decorationRouter);
 app.use(utilityRouter);
+app.use(buildRouter);
 
 
 mongoose.set('strictQuery', false);
