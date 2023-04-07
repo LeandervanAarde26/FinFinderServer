@@ -8,6 +8,7 @@ import { DecorationModel } from "../models/decorations.model";
 import { UtilityModel } from "../models/utilities.model";
 import { KeyObject } from "tls";
 import { KeyObjectType } from "crypto";
+import { TankModel } from "../models/tanks.model";
 
 
 async function getUsers(req: Request, res: Response) {
@@ -28,6 +29,7 @@ async function addUser(req: Request, res: Response) {
         const allFish = await FishModel.find();
         const decorations = await DecorationModel.find();
         const utils = await UtilityModel.find()
+        const tanks = await TankModel.find();
 
         const userUtilities = await Promise.all(utils.map(async (i) => {
             return await Reference.create({ id: i._id, quantity: 0 });
@@ -40,6 +42,12 @@ async function addUser(req: Request, res: Response) {
         const userFish = await Promise.all(allFish.map(async (i) => {
             return await Reference.create({ id: i._id, quantity: 0 });
         }));
+
+        const userTanks = await Promise.all(tanks.map(async (i) => {
+            return await Reference.create({ id: i._id, quantity: 0 });
+        }));
+
+
         if (!existingUser) {
             const newUser = new Users({
                 name: Username,
@@ -63,9 +71,9 @@ async function addUser(req: Request, res: Response) {
                 id: newUser._id,
                 fish: userFish,
                 decorations: userDecorations,
-                utilities: userUtilities
+                utilities: userUtilities,
+                tanks: userTanks
             });
-
             const savedUser = await newUser.save()
             const savedMaterial = await userMaterials.save();
             // const user
@@ -85,8 +93,8 @@ async function getUserMaterials(req: Request, res: Response) {
         const userId = req.params.id
         const user = await Users.findById(userId);
         const populateAreas = {
-            path: 'id name imagePath',
-            select: 'id name imagePath'
+            path: 'id name imagePath Litres',
+            select: 'id name imagePath Litres'
         }
         if (!user) {
             return res.status(400).json({ msg: "Bad request" })
@@ -110,6 +118,12 @@ async function getUserMaterials(req: Request, res: Response) {
                 ...populateAreas,
                 model: UtilityModel,
             },
+        }).populate({
+            path: 'tanks',
+            populate: {
+                ...populateAreas,
+                model: TankModel,
+            },
         });
 
         console.log(userMaterials)
@@ -119,9 +133,12 @@ async function getUserMaterials(req: Request, res: Response) {
                 _id: i._id,
                 fish: i.fish.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
                 decorations: i.decorations.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
-                utilities: i.utilities.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } })
+                utilities: i.utilities.map((j: any) => { return { _id: j.id._id, name: j.id.name, imagePath: j.id.imagePath, quantity: j.quantity } }),
+                tanks: i.tanks.map((j: any) => { return { _id: j.id._id, name: j.id.Litres + " L tank", imagePath: j.id.imagePath, quantity: j.quantity } })
             }
         })
+
+        console.log(returnData[0].tanks)
         if (!userMaterials) {
             return res.status(400).json({ msg: "Bad request" })
         }
@@ -193,11 +210,17 @@ async function getUserMaterial(req: Request, res: Response) {
                     {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
                     // {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1}}
               ]);
+              case "tanks":
+                userMaterial = await userMats.aggregate([
+                   {$match: {id: new mongoose.Types.ObjectId(userId) }},
+                   {$project: { _id: 0 , [`${category}`]: 1}},
+                   {$unwind: `$${category}`},
+                   {$lookup: {from: `${category}`, localField: `${category}.id`, foreignField: '_id', as: 'item'}},
+                   {$unwind: '$item'},
+                   {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
+             ]);
 
         }
-
-
-
         if (!userMaterial) {
             return res.status(404).json({ msg: `user with ${userId} does not exist` })
         }

@@ -26,8 +26,8 @@ class UserMaterial {
     @prop({ _id: false, type: () => [MaterialReference] })
     public utilities!: MaterialReference[];
 
-    // @prop({ _id: false, type: () => [MaterialReference] })
-    // public utilities!: MaterialReference[];
+    @prop({ _id: false, type: () => [MaterialReference] })
+    public tanks!: MaterialReference[];
 }
 
 

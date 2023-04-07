@@ -21,7 +21,29 @@ async function addBuild(req: Request, res: Response){
     }
 }
 
-export default {addBuild}
+async function addAllBuilds(req: Request, res: Response){
+    try {
+        const builds = req.body;
+
+        if(!builds){
+            return res.status(204).json({msg: 'no content in builds', builds})
+        }
+        console.log(builds);
+    
+        const insertedBuilds = await preBuilds.insertMany(builds);
+    
+        if(!insertedBuilds){
+            return res.status(404).json({msg: `Could not insert builds, please try later`})
+        }
+    
+        return res.status(200).json(insertedBuilds)
+        
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({error: error})
+    }
+}
+export default {addBuild, addAllBuilds}
 
 
 // Then get the builds and their information
