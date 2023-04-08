@@ -9,6 +9,7 @@ import { UtilityModel } from "../models/utilities.model";
 import { KeyObject } from "tls";
 import { KeyObjectType } from "crypto";
 import { TankModel } from "../models/tanks.model";
+import { preBuilds } from "../models/prebuilds.model";
 
 
 async function getUsers(req: Request, res: Response) {
@@ -157,13 +158,11 @@ async function getUserMaterial(req: Request, res: Response) {
 
         let userMaterial: any;
         let compatibleFish: any;
+        let foundInBuilds: any;
 
 
         switch(category){
             case "fish":
-                const populateAreas = {
-                    path: 'id name imagePath',  select: 'id name imagePath'
-                }
                  userMaterial = await userMats.aggregate([
                     {$match: {id: new mongoose.Types.ObjectId(userId) }},
                     {$project: { _id: 0 , [`${category}`]: 1}},
@@ -199,6 +198,8 @@ async function getUserMaterial(req: Request, res: Response) {
                     {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
                     // {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1}}
               ]);
+              foundInBuilds = await preBuilds.find({"decorations.id": item})
+              break;
               
             case "utilities":
                  userMaterial = await userMats.aggregate([
@@ -209,7 +210,16 @@ async function getUserMaterial(req: Request, res: Response) {
                     {$unwind: '$item'},
                     {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
                     // {$project: {[`${category}.id`]: 1, [`${category}.quantity`]: 1}}
+
+                  
               ]);
+              foundInBuilds = await preBuilds.find({"utilities.id": item}).populate({
+                path: 'MainFish',
+                select: 'imagePath',
+                model: FishModel
+            });
+              console.log(foundInBuilds)
+              break;
               case "tanks":
                 userMaterial = await userMats.aggregate([
                    {$match: {id: new mongoose.Types.ObjectId(userId) }},
@@ -217,19 +227,28 @@ async function getUserMaterial(req: Request, res: Response) {
                    {$unwind: `$${category}`},
                    {$lookup: {from: `${category}`, localField: `${category}.id`, foreignField: '_id', as: 'item'}},
                    {$unwind: '$item'},
-                   {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},
+                   {$match: {[`${category}.id`]: new mongoose.Types.ObjectId(item as string)}},     
              ]);
-
+             foundInBuilds = await preBuilds.find({"tank": item}).populate({
+                path: 'MainFish',
+                select: 'imagePath',
+                model: FishModel
+            });
+             break;
         }
         if (!userMaterial) {
             return res.status(404).json({ msg: `user with ${userId} does not exist` })
         }
-       
-        if(category == 'fish'){
-            return res.status(200).json({mat: userMaterial[0], compat: compatibleFish.compatibility, nonCompat: compatibleFish.notCompatible })
-        }
 
-        return res.status(200).json({mat: userMaterial[0]})
+        switch(category){
+            case 'fish': 
+            return res.status(200).json({mat: userMaterial[0], compat: compatibleFish.compatibility, nonCompat: compatibleFish.notCompatible });
+            break;
+            default:
+                return res.status(200).json({mat: userMaterial[0], builds: foundInBuilds})
+
+        }
+    
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: error, msg: 'Internal server error' })
