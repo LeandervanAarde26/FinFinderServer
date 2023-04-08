@@ -1,5 +1,4 @@
-import { getModelForClass, prop, pre } from "@typegoose/typegoose";
-
+import { prop, getModelForClass } from "@typegoose/typegoose";
 import { Schema } from "mongoose";
 
 export class MaterialReference {
@@ -8,11 +7,23 @@ export class MaterialReference {
 
   @prop({ required: true, default: 0 })
   public quantity!: number;
+
+  @prop({ required: true, default: false })
+  public craftable!: boolean;
 }
 
-class UserMaterial {
+class UserBuilds {
   @prop({ required: true, _id: false })
-  public id!: Schema.Types.ObjectId;
+  public userId!: Schema.Types.ObjectId;
+
+  @prop({ required: true })
+  public name!: string;
+
+  @prop({ required: true })
+  public MainFish!: Schema.Types.ObjectId;
+
+  @prop({ required: true, _id: false })
+  public tank!: Schema.Types.ObjectId;
 
   @prop({ _id: false, type: () => [MaterialReference] })
   public fish!: MaterialReference[];
@@ -23,9 +34,8 @@ class UserMaterial {
   @prop({ _id: false, type: () => [MaterialReference] })
   public utilities!: MaterialReference[];
 
-  @prop({ _id: false, type: () => [MaterialReference] })
-  public tanks!: MaterialReference[];
+  @prop({ _id: false })
+  public remainingSpace!: number;
 }
 
-export const userMats = getModelForClass(UserMaterial);
-export const userMaterialsRef = getModelForClass(MaterialReference);
+export const userBuilds = getModelForClass(UserBuilds);

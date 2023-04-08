@@ -1,8 +1,7 @@
-import { prop, getModelForClass } from '@typegoose/typegoose';
-import { Schema } from 'mongoose';
+import { prop, getModelForClass } from "@typegoose/typegoose";
+import { Schema } from "mongoose";
 
- class Decorations {
-
+class Decorations {
   @prop({ required: true })
   public name!: string;
 

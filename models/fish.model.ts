@@ -1,5 +1,5 @@
-import { prop, getModelForClass } from '@typegoose/typegoose';
-import { Schema } from 'mongoose';
+import { prop, getModelForClass } from "@typegoose/typegoose";
+import { Schema } from "mongoose";
 
 // export class FishRef {
 //   @prop({ required: true, ref: 'Fish' })
@@ -9,8 +9,7 @@ import { Schema } from 'mongoose';
 //   public quantity!: number;
 // }
 
- class Fish {
-
+class Fish {
   @prop({ required: true })
   public name!: string;
 
@@ -26,10 +25,10 @@ import { Schema } from 'mongoose';
   @prop({ required: true })
   public space!: number;
 
-  @prop({ required: true, ref: 'Fish' })
+  @prop({ required: true, ref: "Fish" })
   public compatibility!: Schema.Types.ObjectId[];
 
-  @prop({ required: true, ref: 'Fish' })
+  @prop({ required: true, ref: "Fish" })
   public notCompatible!: Schema.Types.ObjectId[];
 
   @prop({ required: true })

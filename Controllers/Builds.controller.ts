@@ -6,6 +6,8 @@ import { DecorationModel } from "../models/decorations.model";
 import { UtilityModel } from "../models/utilities.model";
 import { userMats } from "../models/userMaterial";
 import { TankModel } from "../models/tanks.model";
+import { Users } from "../models/users.model";
+import { builtinModules } from "module";
 
 async function addAllBuilds(req: Request, res: Response) {
   try {
@@ -170,6 +172,156 @@ async function getallBuilds(req: Request, res: Response) {
   }
 }
 
-export default { addAllBuilds, getallBuilds };
+async function craftBuild(req: Request, res: Response) {
+  try {
+    // General functions that find the users materials and find the specified build that they want to build.
+    const userId = req.params.id;
+    const buildId = req.query.buildId;
+    const user = await userMats.findOne({ id: userId });
+    const build = await preBuilds.findById(buildId);
 
-// Then get the builds and their information
+    interface obj {
+      id: string;
+      quantity: number;
+    }
+    //If neither are found stop the route and return a message;
+    if (!userId || !buildId) {
+      return res.status(404).json({
+        msg: `user with id ${userId} or build with id ${buildId} was not found`,
+      });
+    }
+    //Check if they are found then start the functions;
+    //variables for decorations
+    const buildDecorationsArr: obj[] = [];
+    const userDecorationsArr: obj[] = [];
+    let DecorationFilter;
+    let updatedDecorations;
+
+    //Variables for utilities
+    const buildUtilitiesArr: obj[] = [];
+    const userUtilitiesArr: obj[] = [];
+    let utilitiesFilter;
+    let updatedUtilities;
+
+    //variables for fish
+    const buildFishArr: obj[] = [];
+    const userFishArr: obj[] = [];
+    let fishFilter;
+    let updatedFish;
+
+    if (build !== null && user) {
+      //Logic for builds fish
+      // Loop through build and user data to return only their id and quantity
+      build.fish.map((i: any) => {
+        buildFishArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      user.fish.map((i: any) => {
+        userFishArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      //Then we filter through that to find the matching ids
+      fishFilter = userFishArr.filter((fish) =>
+        buildFishArr.some((buildFish) => buildFish.id === fish.id)
+      );
+
+      // Finally we loop through all that to get the new quantities
+      fishFilter.forEach((item, index) => {
+        item.quantity = item.quantity - buildFishArr[index].quantity;
+      });
+
+      //update values on Mongo.
+      for (let quantity of fishFilter) {
+        updatedFish = await userMats.updateOne(
+          {
+            id: userId,
+            [`fish.id`]: new mongoose.Types.ObjectId(quantity.id),
+          },
+          {
+            $set: { "fish.$.quantity": quantity.quantity },
+          }
+        );
+      }
+
+      console.log(fishFilter);
+
+      //Logic for builds decorations
+      // Loop through build and user data to return only their id and quantity
+      build.decorations.map((i: any) => {
+        buildDecorationsArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      user.decorations.map((i: any) => {
+        userDecorationsArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      //Then we filter through that to find the matching ids
+      DecorationFilter = userDecorationsArr.filter((decoration) =>
+        buildDecorationsArr.some(
+          (buildDecoration) => buildDecoration.id === decoration.id
+        )
+      );
+
+      // Finally we loop through all that to get the new quantities
+      DecorationFilter.forEach((item, index) => {
+        item.quantity = item.quantity - buildDecorationsArr[index].quantity;
+      });
+
+      //update values on Mongo.
+      for (let quantity of DecorationFilter) {
+        updatedDecorations = await userMats.updateOne(
+          {
+            id: userId,
+            [`decorations.id`]: new mongoose.Types.ObjectId(quantity.id),
+          },
+          {
+            $set: { "decorations.$.quantity": quantity.quantity },
+          }
+        );
+      }
+      console.log(DecorationFilter);
+
+      //Logic for builds decorations
+      // Loop through build and user data to return only their id and quantity
+      build.utilities.map((i: any) => {
+        buildUtilitiesArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      user.utilities.map((i: any) => {
+        userUtilitiesArr.push({ id: i.id.toString(), quantity: i.quantity });
+      });
+
+      //Then we filter through that to find the matching ids
+      utilitiesFilter = userUtilitiesArr.filter((utility) =>
+        buildUtilitiesArr.some((buildUtility) => buildUtility.id === utility.id)
+      );
+
+      // Finally we loop through all that to get the new quantities
+      utilitiesFilter.forEach((item, index) => {
+        item.quantity = item.quantity - buildUtilitiesArr[index].quantity;
+      });
+
+      //update values on Mongo.
+      for (let quantity of utilitiesFilter) {
+        updatedUtilities = await userMats.updateOne(
+          {
+            id: userId,
+            [`utilities.id`]: new mongoose.Types.ObjectId(quantity.id),
+          },
+          {
+            $set: { "utilities.$.quantity": quantity.quantity },
+          }
+        );
+      }
+      console.log(utilitiesFilter);
+    }
+    return res
+      .status(200)
+      .json({ updatedFish, updatedUtilities, updatedDecorations });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error });
+  }
+}
+
+export default { addAllBuilds, getallBuilds, craftBuild };
