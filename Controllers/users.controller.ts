@@ -75,6 +75,7 @@ async function addUser(req: Request, res: Response) {
                 utilities: userUtilities,
                 tanks: userTanks
             });
+            
             const savedUser = await newUser.save()
             const savedMaterial = await userMaterials.save();
             // const user
