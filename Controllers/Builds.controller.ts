@@ -6,8 +6,7 @@ import { DecorationModel } from "../models/decorations.model";
 import { UtilityModel } from "../models/utilities.model";
 import { userMats } from "../models/userMaterial";
 import { TankModel } from "../models/tanks.model";
-import { Users } from "../models/users.model";
-import { builtinModules } from "module";
+import { userBuilds } from "../models/userbuild.model";
 
 async function addAllBuilds(req: Request, res: Response) {
   try {
@@ -315,9 +314,24 @@ async function craftBuild(req: Request, res: Response) {
       }
       console.log(utilitiesFilter);
     }
+
+    if (updatedFish && updatedUtilities && updatedDecorations) {
+      const newBuild = await new userBuilds({
+        userId: userId,
+        name: build?.name,
+        MainFish: build?.MainFish,
+        tank: build?.tank,
+        fish: build?.fish,
+        decorations: build?.decorations,
+        utilities: build?.utilities,
+        remainingSpace: build?.remainingSpace,
+      });
+
+      newBuild.save();
+    }
     return res
       .status(200)
-      .json({ updatedFish, updatedUtilities, updatedDecorations });
+      .json({ created: true });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ error });

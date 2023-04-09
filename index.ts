@@ -11,6 +11,7 @@ const decorationRouter = require("./Routes/decorations.route");
 const utilityRouter = require("./Routes/utilities.route");
 const buildRouter = require("./Routes/builds.route");
 const tankRouter = require("./Routes/tanks.routes");
+const userBuildsRouter = require('./Routes/userBuilds.route')
 dotenv.config();
 
 const app: Express = express();
@@ -26,6 +27,7 @@ app.use(decorationRouter);
 app.use(utilityRouter);
 app.use(buildRouter);
 app.use(tankRouter);
+app.use(userBuildsRouter);
 
 mongoose.set("strictQuery", false);
 dbConnection().then(() => {
