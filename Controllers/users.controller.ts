@@ -10,11 +10,12 @@ import { KeyObject } from "tls";
 import { KeyObjectType } from "crypto";
 import { TankModel } from "../models/tanks.model";
 import { preBuilds } from "../models/prebuilds.model";
+import { userBuilds } from "../models/userbuild.model";
 
 async function getUsers(req: Request, res: Response) {
   const userId = req.params.id;
   try {
-    const user = await Users.findById(userId);
+    const user = await Users.findById(userId).select("name");
     return res
       .status(200)
       .json(user ?? { error: "Fault in route, please try again later" });
@@ -199,12 +200,39 @@ async function getUserMaterials(req: Request, res: Response) {
 async function getUserMaterial(req: Request, res: Response) {
   try {
     const item = req.query.itemId;
-    const userId = req.params.id;
+    const userId = new mongoose.Types.ObjectId(req.params.id);
     const category = req.query.category;
 
     let userMaterial: any;
     let compatibleFish: any;
     let foundInBuilds: any;
+    let filteredTanks: any;
+    interface obj {
+      _id: string;
+      name: string;
+      items: any;
+    }
+    let fish: obj[] = [];
+
+    const fishLocation = await userBuilds.find({ userId: userId });
+
+    if (fishLocation) {
+      // console.log(fishLocation)
+
+      const mappedObject = fishLocation.map((i) => {
+        fish.push({
+          _id: i._id.toString(),
+          name: i.name,
+          items: i.fish.map((item) => item.id.toString()),
+        });
+      });
+
+      if (mappedObject && fish) {
+        filteredTanks = fish.filter((tank, index) =>
+          tank.items.includes(item!.toString())
+        );
+      }
+    }
 
     switch (category) {
       case "fish":
@@ -342,13 +370,12 @@ async function getUserMaterial(req: Request, res: Response) {
 
     switch (category) {
       case "fish":
-        return res
-          .status(200)
-          .json({
-            mat: userMaterial[0],
-            compat: compatibleFish.compatibility,
-            nonCompat: compatibleFish.notCompatible,
-          });
+        return res.status(200).json({
+          mat: userMaterial[0],
+          compat: compatibleFish.compatibility,
+          nonCompat: compatibleFish.notCompatible,
+          tanks: filteredTanks,
+        });
         break;
       default:
         return res

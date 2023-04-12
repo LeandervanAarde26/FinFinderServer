@@ -119,8 +119,6 @@ async function viewUserBuild(req: Request, res: Response) {
     const filteredBuild: obj[] = [];
     const userMaterial: any = await userMats.findOne({ id: userId });
     const filteredUserMaterial: obj[] = [];
-    let userFish = userMaterial.fish;
-    let buildFish = userBuild2;
     let filter;
 
     if (userBuild2) {
@@ -160,12 +158,13 @@ async function updateUserBuildMaterial(req: Request, res: Response) {
     const ItemId = req.body.id;
     const newQuantity: number = req.body.qty;
     const newUserQuanity: number = req.body.userQty;
+    const category = req.query.category;
 
     const userBuild = await userBuilds.findOneAndUpdate(
-      { userId: userId, _id: buildId, "fish.id": ItemId },
+      { userId: userId, _id: buildId,  [`fish.id`]: ItemId },
       {
         $set: {
-          "fish.$.quantity": newQuantity,
+          [`fish.$.quantity`]: newQuantity,
         },
       }
     );
@@ -176,7 +175,7 @@ async function updateUserBuildMaterial(req: Request, res: Response) {
         [`fish.id`]: ItemId,
       },
       {
-        $set: { "fish.$.quantity": newUserQuanity },
+        $set: { [`fish.$.quantity`]: newUserQuanity },
       }
     );
 
