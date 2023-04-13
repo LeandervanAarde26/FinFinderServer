@@ -20,6 +20,9 @@ class UserBuilds {
   public name!: string;
 
   @prop({ required: true })
+  public buildName!: string;
+
+  @prop({ required: true })
   public MainFish!: Schema.Types.ObjectId;
 
   @prop({ required: true, _id: false })

@@ -176,8 +176,10 @@ async function craftBuild(req: Request, res: Response) {
     // General functions that find the users materials and find the specified build that they want to build.
     const userId = req.params.id;
     const buildId = req.query.buildId;
+    const buildName = req.query.buildName;
     const user = await userMats.findOne({ id: userId });
     const build = await preBuilds.findById(buildId);
+ 
 
     interface obj {
       id: string;
@@ -325,6 +327,7 @@ async function craftBuild(req: Request, res: Response) {
         decorations: build?.decorations,
         utilities: build?.utilities,
         remainingSpace: build?.remainingSpace,
+        buildName: buildName,
       });
 
       newBuild.save();

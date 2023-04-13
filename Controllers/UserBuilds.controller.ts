@@ -161,7 +161,7 @@ async function updateUserBuildMaterial(req: Request, res: Response) {
     const category = req.query.category;
 
     const userBuild = await userBuilds.findOneAndUpdate(
-      { userId: userId, _id: buildId,  [`fish.id`]: ItemId },
+      { userId: userId, _id: buildId, [`fish.id`]: ItemId },
       {
         $set: {
           [`fish.$.quantity`]: newQuantity,
@@ -188,4 +188,28 @@ async function updateUserBuildMaterial(req: Request, res: Response) {
   }
 }
 
-export default { getAllUserBuilds, viewUserBuild, updateUserBuildMaterial };
+async function deleteBuild(req: Request, res: Response) {
+  try {
+    const buildId = req.params.id;
+    const userBuild = await userBuilds.deleteOne({ _id: buildId });
+
+    if (!userBuild) {
+      return res
+        .status(400)
+        .json({ id: `Could not delete build with ID ${buildId}` });
+    }
+    return res.status(200).json(userBuild);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+
+    
+  }
+}
+
+export default {
+  getAllUserBuilds,
+  viewUserBuild,
+  updateUserBuildMaterial,
+  deleteBuild,
+};
