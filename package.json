@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "build": "tsc",
-    "start": "node ./build/index.js",
+    "build": "npm install && tsc",
+    "start": "node build/index.js",
     "dev": "npx nodemon index.ts"
   },
   "repository": {
